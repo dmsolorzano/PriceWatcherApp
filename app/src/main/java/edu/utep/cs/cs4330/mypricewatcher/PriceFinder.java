@@ -6,14 +6,12 @@ import java.util.Random;
 
 /** PriceFinder used to track prices of all products*/
 public class PriceFinder {
-    public Product product1; // later this will be a list of products
     public ArrayList<Product> products = new ArrayList<>();
     private int percentageChange;
 
     public PriceFinder() {
         // populate product list
         populateList();
-        product1 = new Product();
     }
 
     /** Constructor to add dummy products to the list*/
@@ -34,8 +32,6 @@ public class PriceFinder {
     public void updatePrice(){
         Random r = new Random();
         double randomValue = 10.00 + (20.00 - 10.00) * r.nextDouble();
-        product1.setInitialPrice(20.00);
-        product1.setCurrentPrice(randomValue);
         // go through products list and randomize
         for(Product element: products){
             randomValue = 10.00 + (20.00 - 10.00) * r.nextDouble();// reset random every iteration

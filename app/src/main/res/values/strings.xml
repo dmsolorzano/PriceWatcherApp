@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">My Price Watcher</string>
+    <string name="app_name"><font color="#ffffff">My Price Watcher</font></string>
     <string name="initialPrice">InitialPrice</string>
     <string name="updateButton">Update Price</string>
 </resources>
