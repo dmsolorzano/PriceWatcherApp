@@ -7,7 +7,6 @@ import java.util.Random;
 /** PriceFinder used to track prices of all products*/
 public class PriceFinder {
     public ArrayList<Product> products = new ArrayList<>();
-    private int percentageChange;
 
     public PriceFinder() {
         // populate product list
@@ -42,21 +41,12 @@ public class PriceFinder {
     /** Method used to calculate the percentage change between the initial price
      * and the current price*/
     public void calculatePercentageChange(){
-        //double decrease = (product1.getInitialPrice() - product1.getCurrentPrice());
-        //percentageChange = (int)((decrease / product1.getInitialPrice())*100);
+
         for(Product element: products){
             double decrease = (element.getInitialPrice() - element.getCurrentPrice());
             int newPercent = (int)((decrease / element.getInitialPrice())*100);
             element.setPercentageChange(newPercent);
         }
-    }
-
-    public int getPercentageChange() {
-        return percentageChange;
-    }
-
-    public void setPercentageChange(int percentageChange){
-        this.percentageChange = percentageChange;
     }
 
 }

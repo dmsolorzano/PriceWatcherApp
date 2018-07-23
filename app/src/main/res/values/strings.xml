@@ -2,4 +2,5 @@
     <string name="app_name"><font color="#ffffff">My Price Watcher</font></string>
     <string name="initialPrice">InitialPrice</string>
     <string name="updateButton">Update Price</string>
+    <string name="title_activity_product_detail">ProductDetail</string>
 </resources>
