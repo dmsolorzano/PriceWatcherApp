@@ -38,6 +38,8 @@ public class ProductListActivity extends AppCompatActivity {
     private void updatePriceButtonClicked(View view) {
         Toast.makeText(this, "Update Tapped!", Toast.LENGTH_SHORT).show();
         tracker.updatePrice();
-        adapter.notifyDataSetChanged(); //updates
+        tracker.calculatePercentageChange();
+        adapter.notifyDataSetChanged(); //updates ListView
     }
+    //TODO save state
 }

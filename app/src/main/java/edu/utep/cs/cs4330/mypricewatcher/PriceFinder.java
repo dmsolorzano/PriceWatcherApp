@@ -46,8 +46,13 @@ public class PriceFinder {
     /** Method used to calculate the percentage change between the initial price
      * and the current price*/
     public void calculatePercentageChange(){
-        double decrease = (product1.getInitialPrice() - product1.getCurrentPrice());
-        percentageChange = (int)((decrease / product1.getInitialPrice())*100);
+        //double decrease = (product1.getInitialPrice() - product1.getCurrentPrice());
+        //percentageChange = (int)((decrease / product1.getInitialPrice())*100);
+        for(Product element: products){
+            double decrease = (element.getInitialPrice() - element.getCurrentPrice());
+            int newPercent = (int)((decrease / element.getInitialPrice())*100);
+            element.setPercentageChange(newPercent);
+        }
     }
 
     public int getPercentageChange() {

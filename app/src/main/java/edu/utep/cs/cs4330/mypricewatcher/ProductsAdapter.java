@@ -38,7 +38,7 @@ public class ProductsAdapter extends ArrayAdapter<Product> {
         currentPrice.setText(String.format("Current Price: $%.2f",currentProduct.getCurrentPrice()));
 
         TextView percentageChange = (TextView) listProduct.findViewById(R.id.percentageDrop);
-        percentageChange.setText(String.format("Percentage Drop: %d %%", 0));
+        percentageChange.setText(String.format("Percentage Drop: %d %%", currentProduct.getPercentageChange()));
 
         return listProduct;
     }

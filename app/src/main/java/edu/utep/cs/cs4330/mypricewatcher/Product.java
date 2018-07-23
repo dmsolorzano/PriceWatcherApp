@@ -6,6 +6,7 @@ public class Product {
     private double initialPrice;
     private double currentPrice;
     private String url;
+    private int percentageChange;
 
     public Product() {
         productName = "Generic Football";
@@ -58,5 +59,13 @@ public class Product {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public int getPercentageChange() {
+        return percentageChange;
+    }
+
+    public void setPercentageChange(int percentageChange) {
+        this.percentageChange = percentageChange;
     }
 }
