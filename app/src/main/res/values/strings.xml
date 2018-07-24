@@ -3,4 +3,9 @@
     <string name="initialPrice">InitialPrice</string>
     <string name="updateButton">Update Price</string>
     <string name="title_activity_product_detail">ProductDetail</string>
+    <string name="initialprice">initialPrice</string>
+    <string name="product_name">Product Name</string>
+    <string name="current_price">Current Price</string>
+    <string name="percentage">Percentage</string>
+    <string name="initial_price">Initial Price</string>
 </resources>

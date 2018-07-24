@@ -15,13 +15,13 @@ public class PriceFinder {
 
     /** Constructor to add dummy products to the list*/
     public void populateList(){
-        Product product2 = new Product("Football 2");
+        Product product2 = new Product();
         products.add(product2);
-        Product product3 = new Product("Football 3");
+        Product product3 = new Product();
         products.add(product3);
-        Product product4 = new Product("Football 4");
+        Product product4 = new Product();
         products.add(product4);
-        Product product5 = new Product("Football 5");
+        Product product5 = new Product();
         products.add(product5);
 
     }
