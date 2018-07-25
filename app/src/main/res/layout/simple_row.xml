@@ -7,13 +7,13 @@
     android:paddingRight="8dp"
     android:paddingBottom="4dp">
 
-
     <TextView
         android:id="@+id/name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/product_name"
         android:textStyle="bold"
+        android:textSize="20sp"
         android:padding="2dp"/>
 
     <TextView
@@ -42,5 +42,11 @@
         android:layout_below="@+id/initialPrice"
         android:text="@string/percentage"
         android:padding="2dp"/>
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:layout_marginTop="0dp"
+        android:background="#630500"
+        android:layout_below="@+id/percentageDrop"/>
 
 </RelativeLayout>

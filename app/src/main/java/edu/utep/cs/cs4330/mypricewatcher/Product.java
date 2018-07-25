@@ -8,21 +8,21 @@ public class Product {
     private String url;
     private int percentageChange;
 
-    public Product() {
+    Product() {
         productName = "Generic Football";
         initialPrice = 20.00; // Fixed price for the time being
         currentPrice = 20.00;
         url = "https://www.amazon.com/Wilson-Composite-High-School-Football/dp/B0009KF4SE/";
     }
 
-    public Product(String productName, String url) {
+    Product(String productName, String url) {
         this.productName = productName;
         initialPrice = 20.00; // Fixed price for the time being
         currentPrice = 20.00;
         this.url = url;
     }
 
-    public Product(String name, double iPrice, double cPrice, String url){
+    Product(String name, double iPrice, double cPrice, String url){
         this.productName = name;
         this.initialPrice = iPrice;
         this.currentPrice = cPrice;

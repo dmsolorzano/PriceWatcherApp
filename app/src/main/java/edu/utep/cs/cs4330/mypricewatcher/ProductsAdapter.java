@@ -9,12 +9,13 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class ProductsAdapter extends ArrayAdapter<Product> {
     private Context iContext;
-    private List<Product> productsList = new ArrayList<>();
+    private List<Product> productsList;
 
-    public ProductsAdapter(Context context, ArrayList<Product> list) {
+    ProductsAdapter(Context context, ArrayList<Product> list) {
         super(context, 0, list);
         iContext = context;
         productsList = list;
@@ -32,13 +33,13 @@ public class ProductsAdapter extends ArrayAdapter<Product> {
         name.setText(String.format("Product Name: %s",currentProduct.getProductName()));
 
         TextView price = (TextView) listProduct.findViewById(R.id.initialPrice);
-        price.setText(String.format("Initial Price: $%.2f",currentProduct.getInitialPrice()));
+        price.setText(String.format(Locale.getDefault(),"Initial Price: $%.2f",currentProduct.getInitialPrice()));
 
         TextView currentPrice = (TextView) listProduct.findViewById(R.id.currentPrice);
-        currentPrice.setText(String.format("Current Price: $%.2f",currentProduct.getCurrentPrice()));
+        currentPrice.setText(String.format(Locale.getDefault(),"Current Price: $%.2f",currentProduct.getCurrentPrice()));
 
         TextView percentageChange = (TextView) listProduct.findViewById(R.id.percentageDrop);
-        percentageChange.setText(String.format("Percentage Drop: %d %%", currentProduct.getPercentageChange()));
+        percentageChange.setText(String.format(Locale.getDefault(),"Percentage Drop: %d %%", currentProduct.getPercentageChange()));
 
         return listProduct;
     }

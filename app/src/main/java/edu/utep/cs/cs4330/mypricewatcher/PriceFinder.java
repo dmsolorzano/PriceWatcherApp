@@ -1,20 +1,18 @@
 package edu.utep.cs.cs4330.mypricewatcher;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 /** PriceFinder used to track prices of all products*/
 public class PriceFinder {
     public ArrayList<Product> products = new ArrayList<>();
 
-    public PriceFinder() {
-        // populate product list
+    PriceFinder() {
         populateList();
     }
 
     /** Constructor to add dummy products to the list*/
-    public void populateList(){
+    private void populateList(){
         Product product2 = new Product();
         products.add(product2);
         Product product3 = new Product();
@@ -30,7 +28,7 @@ public class PriceFinder {
       * currently only randomizes new price */
     public void updatePrice(){
         Random r = new Random();
-        double randomValue = 10.00 + (20.00 - 10.00) * r.nextDouble();
+        double randomValue;
         // go through products list and randomize
         for(Product element: products){
             randomValue = 10.00 + (20.00 - 10.00) * r.nextDouble();// reset random every iteration
@@ -41,12 +39,10 @@ public class PriceFinder {
     /** Method used to calculate the percentage change between the initial price
      * and the current price*/
     public void calculatePercentageChange(){
-
         for(Product element: products){
             double decrease = (element.getInitialPrice() - element.getCurrentPrice());
             int newPercent = (int)((decrease / element.getInitialPrice())*100);
             element.setPercentageChange(newPercent);
         }
     }
-
 }
