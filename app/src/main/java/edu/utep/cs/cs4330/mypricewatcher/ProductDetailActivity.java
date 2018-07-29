@@ -1,6 +1,5 @@
 package edu.utep.cs.cs4330.mypricewatcher;
 
-import android.app.ActionBar;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AlertDialog;
@@ -10,9 +9,8 @@ import android.webkit.URLUtil;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-public class ProductDetail extends AppCompatActivity {
+public class ProductDetailActivity extends AppCompatActivity {
     TextView productName;
     TextView initialPrice;
     TextView currentPrice;
@@ -39,8 +37,10 @@ public class ProductDetail extends AppCompatActivity {
         if (URLUtil.isValidUrl(bundle.getString("URL"))) {
             wv.loadUrl(bundle.getString("URL"));
         }
-        else
+        else {
             showErrorDialog();
+            //navigateUpFromSameTask(this);
+        }
     }
     public void showErrorDialog(){
         AlertDialog.Builder dialogBuilder =  new AlertDialog.Builder(this);

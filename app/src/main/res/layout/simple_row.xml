@@ -42,11 +42,6 @@
         android:layout_below="@+id/initialPrice"
         android:text="@string/percentage"
         android:padding="2dp"/>
-    <View
-        android:layout_width="fill_parent"
-        android:layout_height="2dp"
-        android:layout_marginTop="0dp"
-        android:background="#630500"
-        android:layout_below="@+id/percentageDrop"/>
+
 
 </RelativeLayout>

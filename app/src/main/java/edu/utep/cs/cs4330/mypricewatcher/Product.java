@@ -1,5 +1,6 @@
 package edu.utep.cs.cs4330.mypricewatcher;
 
+
 /** Product class which will represent an object of a product being tracked*/
 public class Product {
     private String productName;
@@ -7,12 +8,14 @@ public class Product {
     private double currentPrice;
     private String url;
     private int percentageChange;
+    DBAdapter db;
 
     Product() {
         productName = "Generic Football";
         initialPrice = 20.00; // Fixed price for the time being
         currentPrice = 20.00;
         url = "https://www.amazon.com/Wilson-Composite-High-School-Football/dp/B0009KF4SE/";
+
     }
 
     Product(String productName, String url) {
@@ -20,6 +23,7 @@ public class Product {
         initialPrice = 20.00; // Fixed price for the time being
         currentPrice = 20.00;
         this.url = url;
+
     }
 
     Product(String name, double iPrice, double cPrice, String url){
@@ -27,6 +31,7 @@ public class Product {
         this.initialPrice = iPrice;
         this.currentPrice = cPrice;
         this.url = url;
+
     }
 
     public double getCurrentPrice() {

@@ -7,20 +7,22 @@ import java.util.Random;
 public class PriceFinder {
     public ArrayList<Product> products = new ArrayList<>();
 
+
     PriceFinder() {
         populateList();
     }
 
     /** Constructor to add dummy products to the list*/
     private void populateList(){
-        Product product2 = new Product();
+        // pull object from database
+        /*Product product2 = new Product();
         products.add(product2);
         Product product3 = new Product();
         products.add(product3);
         Product product4 = new Product();
         products.add(product4);
         Product product5 = new Product();
-        products.add(product5);
+        products.add(product5);*/
 
     }
 
