@@ -1,5 +1,9 @@
 package edu.utep.cs.cs4330.mypricewatcher;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -14,16 +18,6 @@ public class PriceFinder {
 
     /** Constructor to add dummy products to the list*/
     private void populateList(){
-        // pull object from database
-        /*Product product2 = new Product();
-        products.add(product2);
-        Product product3 = new Product();
-        products.add(product3);
-        Product product4 = new Product();
-        products.add(product4);
-        Product product5 = new Product();
-        products.add(product5);*/
-
     }
 
      /** Method used to update price from webpage
@@ -36,10 +30,11 @@ public class PriceFinder {
             randomValue = 10.00 + (20.00 - 10.00) * r.nextDouble();// reset random every iteration
             element.setCurrentPrice(randomValue);
         }
+        //TODO need to update new prices to database
     }
 
     /** Method used to calculate the percentage change between the initial price
-     * and the current price*/
+     * and the current price of all Products*/
     public void calculatePercentageChange(){
         for(Product element: products){
             double decrease = (element.getInitialPrice() - element.getCurrentPrice());

@@ -9,18 +9,16 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 public class DBAdapter {
-    static final String KEY_ROWID = "_id";
-    static final String KEY_NAME = "name";
-    static final String KEY_CURRENTPRICE = "currentprice";
-    static final String KEY_INITIALPRICE = "initialprice";
-    static final String KEY_URL = "url";
+    private static final String KEY_NAME = "name";
+    private static final String KEY_INITIALPRICE = "initialprice";
+    private static final String KEY_CURRENTPRICE = "currentprice";
+    private static final String KEY_URL = "url";
 
     static final String TAG = "DBAdapter";
     static final String DATABASE_NAME = "MyDB";
     static final String DATABASE_TABLE = "products";
     static final int DATABASE_VERSION = 1;
-    static final String DATABASE_CREATE =
-            "create table products (name VARCHAR, "
+    static final String DATABASE_CREATE = "create table products (name VARCHAR, "
                     + "initialprice REAL, currentprice REAL, url VARCHAR);";
     final Context context;
     DatabaseHelper DBHelper;
@@ -83,8 +81,8 @@ public class DBAdapter {
 
     public Cursor getAllProducts() {
         return db.query(DATABASE_TABLE, new String[]{KEY_NAME,
-                KEY_CURRENTPRICE,
                 KEY_INITIALPRICE,
+                KEY_CURRENTPRICE,
                 KEY_URL
         }, null, null, null, null, null);
     }

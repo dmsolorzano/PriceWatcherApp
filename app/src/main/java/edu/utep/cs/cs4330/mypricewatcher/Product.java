@@ -18,14 +18,6 @@ public class Product {
 
     }
 
-    Product(String productName, String url) {
-        this.productName = productName;
-        initialPrice = 20.00; // Fixed price for the time being
-        currentPrice = 20.00;
-        this.url = url;
-
-    }
-
     Product(String name, double iPrice, double cPrice, String url){
         this.productName = name;
         this.initialPrice = iPrice;
