@@ -87,6 +87,12 @@ public class DBAdapter {
         }, null, null, null, null, null);
     }
 
+    public boolean updateCurrentPrice(String position, double currentPrice) {
+        ContentValues args = new ContentValues();
+        args.put(KEY_CURRENTPRICE, currentPrice);
+        return db.update(DATABASE_TABLE, args, KEY_NAME + "='" + position+ "'", null) > 0;
+    }
+
     public boolean updateProduct(String position, String name, double initialPrice, double currentPrice, String url) {
         ContentValues args = new ContentValues();
         args.put(KEY_NAME, name);
@@ -95,5 +101,4 @@ public class DBAdapter {
         args.put(KEY_URL, url);
         return db.update(DATABASE_TABLE, args, KEY_NAME + "='" + position+ "'", null) > 0;
     }
-
 }

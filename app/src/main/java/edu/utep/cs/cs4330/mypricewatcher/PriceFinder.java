@@ -26,7 +26,6 @@ public class PriceFinder {
             randomValue = 10.00 + (20.00 - 10.00) * r.nextDouble();// reset random every iteration
             element.setCurrentPrice(randomValue);
         }
-        //TODO need to update new prices to database
     }
 
     /** Method used to calculate the percentage change between the initial price

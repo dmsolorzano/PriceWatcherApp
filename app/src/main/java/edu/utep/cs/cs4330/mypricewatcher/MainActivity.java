@@ -1,6 +1,7 @@
 package edu.utep.cs.cs4330.mypricewatcher;
 
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -93,15 +94,15 @@ public class MainActivity extends AppCompatActivity {
         db.close();
     }
 
-    private String validateLink(String link) {
+    private boolean validateLink(String link) {
         String[] schemes = {"http","https"};
         UrlValidator urlValidator = new UrlValidator(schemes);
         if (urlValidator.isValid(link)) {
             System.out.println("Link is valid");
+            return true;
         } else {
-            link = "https://www.walmart.com/ip/Franklin-Sports-Competition-100-Size-4-Soccer-Ball-Black-White/135643452?";
+            return false;
         }
-        return link;
     }
 
     private void updatePriceButtonClicked(View view) {
@@ -136,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
         menu.add(0, v.getId(), 0, "Edit");
         menu.add(0, v.getId(), 0, "Delete");
+        menu.add(0, v.getId(), 0, "Update");
     }
 
     @Override
@@ -146,6 +148,11 @@ public class MainActivity extends AppCompatActivity {
         }
         if(item.getTitle()=="Delete") {
             showDeleteProductDialog(info.position);// show dialog
+        }
+        if(item.getTitle()=="Update") {
+            Product product = productsList.get(info.position);
+            DownloadCurrentPrice task = new DownloadCurrentPrice(this, product, info.position);
+            task.execute();
         }
         return true;
     }
@@ -184,7 +191,12 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder.setTitle("Create new product to track");
         dialogBuilder.setMessage("Enter Product and URL below");
         dialogBuilder.setPositiveButton("Done", (dialog, whichButton) -> {
-            String link = validateLink(url.getText().toString());
+            String link = url.getText().toString();
+            if(!validateLink(link)){
+                Toast.makeText(this, "ERROR: Link was invalid \nAdd product aborted", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             product.setUrl(link);
             product.setProductName(productName.getText().toString());
             task = new DownloadPriceTask(this, product, trash);
@@ -234,7 +246,11 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder.setTitle("Edit Product");
         dialogBuilder.setMessage("Enter Product and URL below");
         dialogBuilder.setPositiveButton("Done", (dialog, whichButton) -> {
-            String link = validateLink(url.getText().toString());
+            String link = url.getText().toString();
+            if(!validateLink(link)){
+                Toast.makeText(this, "ERROR: Link was invalid \nEdit product aborted", Toast.LENGTH_SHORT).show();
+                return;
+            }
             product.setProductName(productName.getText().toString());
             product.setUrl(link);
             task = new DownloadPriceTask(this, product, trash);
@@ -266,29 +282,14 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
-            String content = null;
-            URLConnection connection;
             NetworkAdapter conn = new NetworkAdapter();
             Boolean network = false;
             if(conn.checkConnection(activity))
                 network = true;
             else
                 cancel(true);
-
-            try {
-                connection =  new URL(product.getUrl()).openConnection();
-                Scanner scanner = new Scanner(connection.getInputStream());
-                scanner.useDelimiter("\\Z");
-                content = scanner.next();
-            }  catch (final MalformedURLException e) {
-                throw new IllegalStateException("Bad URL: " + product.getUrl(), e);
-            } catch (final IOException e) {
-                Log.d("connect","Connection unavailable");
-
-            }
-            Document document = Jsoup.parse(content); // parses HTML that was retrieved
-            Elements price = document.select("span[class=price-characteristic]");// grabs HTML tag
-            product.setInitialPrice(Double.parseDouble(price.attr("content")));
+            Double price = conn.createConnection(product.getUrl());
+            product.setInitialPrice(price);
             product.setCurrentPrice(product.getInitialPrice());
             return network;
         }
@@ -321,7 +322,39 @@ public class MainActivity extends AppCompatActivity {
                 activity.adapter.notifyDataSetChanged(); //refresh ListView
             }
             activity.db.close();
-            Toast.makeText(activity, "Successfully updated", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, "Background task finished", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private class DownloadCurrentPrice extends AsyncTask<Void,Void,Double>{
+        private MainActivity activity;
+        private Product product;
+        private int position;
+
+        // Constructor passes context and product to add
+        DownloadCurrentPrice(Context context, Product product, int position) {
+            activity = (MainActivity) context;
+            this.product = product;
+            this.position = position;
+        }
+
+        @Override
+        protected void onPostExecute(Double price) {
+            activity.db.open();
+            activity.db.updateCurrentPrice(product.getProductName(),price);
+            activity.productsList.get(position).setCurrentPrice(price);
+            activity.tracker.calculatePercentageChange();
+            activity.adapter.notifyDataSetChanged(); //refresh ListView
+            Toast.makeText(activity, "Updated from CS4330 website", Toast.LENGTH_SHORT).show();
+            activity.db.close();
+        }
+
+        @Override
+        protected Double doInBackground(Void... params) {
+            NetworkAdapter conn = new NetworkAdapter();
+            if(!conn.checkConnection(activity))
+                cancel(true);
+            //return conn.createConnection(product.getUrl()); // for normal updates
+            return conn.createConnection2("http://www.cs.utep.edu/cheon/cs4330/homework/hw3/"); // for cs4330 website
         }
     }
 }

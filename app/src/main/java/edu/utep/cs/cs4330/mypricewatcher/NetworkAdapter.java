@@ -7,7 +7,18 @@ import android.net.wifi.WifiManager;
 import android.net.NetworkInfo;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.widget.Toast;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Scanner;
 
 
 public class NetworkAdapter {
@@ -29,8 +40,45 @@ public class NetworkAdapter {
         }
     }
 
-    public boolean checkDestinationAddress(){
-        return true;
+    /** Must run in async thread*/
+    public double createConnection(String url){
+        String content = null;
+        URLConnection connection;
+
+        try {
+            connection =  new URL(url).openConnection();
+            Scanner scanner = new Scanner(connection.getInputStream());
+            scanner.useDelimiter("\\Z");
+            content = scanner.next();
+        }  catch (final MalformedURLException e) {
+            throw new IllegalStateException("Bad URL: " + url, e);
+        } catch (final IOException e) {
+            Log.d("connect","Connection unavailable");
+        }
+        Document document = Jsoup.parse(content); // parses HTML that was retrieved
+        Elements element = document.select("span[class=price-characteristic]");// grabs HTML tag
+        Double price = Double.parseDouble(element.attr("content"));
+        return price;
+    }
+
+    public double createConnection2(String url){
+        String content = null;
+        URLConnection connection;
+        try {
+            connection =  new URL(url).openConnection();
+            Scanner scanner = new Scanner(connection.getInputStream());
+            scanner.useDelimiter("\\Z");
+            content = scanner.next();
+        }  catch (final MalformedURLException e) {
+            throw new IllegalStateException("Bad URL: " + url, e);
+        } catch (final IOException e) {
+            Log.d("connect","Connection unavailable");
+        }
+        Document document = Jsoup.parse(content);
+        Elements price = document.select("p");
+        String text = price.text();
+        Double sub = Double.parseDouble(text.substring(8));
+        return sub;
     }
 
     private void createNetErrorDialog(Context context) {
