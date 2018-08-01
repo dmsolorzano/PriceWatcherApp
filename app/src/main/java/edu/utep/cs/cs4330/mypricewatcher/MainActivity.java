@@ -1,8 +1,6 @@
 package edu.utep.cs.cs4330.mypricewatcher;
 
 
-import android.annotation.SuppressLint;
-
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -21,7 +19,6 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.apache.commons.validator.routines.UrlValidator;
@@ -32,10 +29,10 @@ import org.jsoup.select.Elements;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
 
-public class MainActivity extends AppCompatActivity implements AsyncResponse{
+public class MainActivity extends AppCompatActivity {
     PriceFinder tracker = new PriceFinder();
     private Button updatePriceButton;
     ProductsAdapter adapter;
@@ -87,7 +84,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         // Responds to single click within listView
         listView.setOnItemClickListener((parent, view, position, id) -> {
             Product product = tracker.products.get((int) id); // product that created
-            Toast.makeText(getApplicationContext(), "Clicked: " + product.getUrl(), Toast.LENGTH_LONG).show();
             onListViewClick(product); //to webview activity
         });
     }
@@ -166,38 +162,34 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.options_dialog, null);
-        ProgressBar progress = dialogView.findViewById(R.id.progressBar);
-        EditText url = (EditText) dialogView.findViewById(R.id.url);
-        EditText productName = (EditText) dialogView.findViewById(R.id.productName);
+        EditText url = dialogView.findViewById(R.id.url);
+        EditText productName = dialogView.findViewById(R.id.productName);
+        Product product = new Product();
+        Product trash = new Product();
         dialogBuilder.setView(dialogView);
         dialogBuilder.setTitle("Create new product to track");
         dialogBuilder.setMessage("Enter Product and URL below");
         dialogBuilder.setPositiveButton("Done", (dialog, whichButton) -> {
-            Double price = 0.0;
-            task = new DownloadPriceTask(this);
-            task.delegate = this;
+            /* TODO Create new product based on inputs from dialog
+            *        and then pass product to the asynctask to perform task
+            *        and then grab that information and pass it to the posExecute method
+            *        to update database and add product to list.*/
             String[] schemes = {"http","https"};
             UrlValidator urlValidator = new UrlValidator(schemes);
             String link = url.getText().toString();
             if (urlValidator.isValid(link)) { //TODO extract to method
                 System.out.println("Link is valid");
             } else {
-                link = "https://www.google.com";
+                link = "https://www.walmart.com/ip/Franklin-Sports-Competition-100-Size-4-Soccer-Ball-Black-White/135643452?";
             }
-            try {
-                price = task.execute(link).get(); // Async task
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-            progress.setVisibility(View.GONE);
-            Product e = new Product(productName.getText().toString(),price, price, link);
-            db.open();
-            long id = db.insertProduct(e.getProductName(),price, price,e.getUrl());
-            db.close();
-            tracker.products.add(e);
-            adapter.notifyDataSetChanged(); //refresh ListView
+            product.setUrl(link);
+            product.setProductName(productName.getText().toString());
+            task = new DownloadPriceTask(this);
+
+            ArrayList<Product> products = new ArrayList<>();// fix here
+            products.add(product);
+            products.add(trash);
+            task.execute(products); // Asynctask running here
         });
         dialogBuilder.setNegativeButton("Cancel", (dialog, whichButton) -> {//do nothing
         });
@@ -233,43 +225,32 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         LayoutInflater inflater = this.getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.options_dialog, null);
         dialogBuilder.setView(dialogView);
-        Product e = productsList.get(position);
-
+        Product product = productsList.get(position);
+        Product trash = new Product(product.getProductName(), product.getInitialPrice(), product.getCurrentPrice(), product.getUrl());
         EditText productName = (EditText) dialogView.findViewById(R.id.productName);
         EditText url = (EditText) dialogView.findViewById(R.id.url);
-        productName.setText(e.getProductName());
-        url.setText(e.getUrl());
+
+        productName.setText(product.getProductName());
+        url.setText(product.getUrl());
+
         dialogBuilder.setTitle("Edit Product");
         dialogBuilder.setMessage("Enter Product and URL below");
         dialogBuilder.setPositiveButton("Done", (dialog, whichButton) -> {
-            Double price = 0.0;
-            task = new DownloadPriceTask(this);
-            task.delegate = this;
             String[] schemes = {"http","https"};
             UrlValidator urlValidator = new UrlValidator(schemes);
             String link = url.getText().toString();
             if (urlValidator.isValid(link)) { //TODO extract to method
                 System.out.println("Link is valid");
-            } else {
+            } else { // TODO fix this
                 link = "https://www.walmart.com/ip/Bodum-BISTRO-Coffee-Mug-Dishwasher-Safe-35-L-12-Ounce-Transparent/55047939";
             }
-            try {
-                price = task.execute(link).get(); // Async task
-            } catch (InterruptedException f) {
-                f.printStackTrace();
-            } catch (ExecutionException f) {
-                f.printStackTrace();
-            }
-            Product p = new Product(productName.getText().toString(),price,price,link);
-            db.open();
-            if (db.updateProduct(e.getProductName(), p.getProductName(),p.getInitialPrice(),p.getCurrentPrice(), p.getUrl()))
-                Toast.makeText(this, "Database Update successful.", Toast.LENGTH_LONG).show();
-            else
-                Toast.makeText(this, "Database Update failed.", Toast.LENGTH_LONG).show();
-            db.close();
-            productsList.set(position, p);
-            tracker.calculatePercentageChange();
-            adapter.notifyDataSetChanged(); //refresh ListView
+            product.setProductName(productName.getText().toString());
+            product.setUrl(product.getUrl());
+            task = new DownloadPriceTask(this);
+            ArrayList<Product> products = new ArrayList<>();
+            products.add(product);// and here
+            products.add(trash);
+            task.execute(products); // Async task
         });
 
         dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -280,43 +261,73 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse{
         b.show();
     }
 
-    /*@Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putSerializable("listViewState", productsList);
-    }*/
+    /** Static nested Asynctask used to create connection to webpage
+     *  and scrape webpage for price
+     *
+     *  Updates database and productList in background*/
+    private static class DownloadPriceTask extends AsyncTask<ArrayList<Product>, Void, ArrayList<Product>> {
+        private MainActivity activity;
 
-    public void processFinish(Double output){
-        //Toast.makeText(this, "Background finished successfully", Toast.LENGTH_SHORT).show();
-    }
-
-    private static class DownloadPriceTask extends AsyncTask<String, Void, Double> {
-        AsyncResponse delegate = null;
-
-        public DownloadPriceTask(Context context) {
+        DownloadPriceTask(Context context) {//TODO fix nasty code by giving Products an id
+            activity = (MainActivity) context;
         }
-
-        protected Double doInBackground(String... urls) {
+        protected ArrayList<Product> doInBackground(ArrayList<Product>... products) {
             String content = null;
-            URLConnection connection = null;
+            URLConnection connection;
+            Product product = new Product(products[0].get(0).getProductName(),products[0].get(0).getInitialPrice(),
+                    products[0].get(0).getCurrentPrice(), products[0].get(0).getUrl()); // product passed from dialog
             //TODO check for malformed connection
             try {
-                connection =  new URL(urls[0]).openConnection();
+                connection =  new URL(product.getUrl()).openConnection();
                 Scanner scanner = new Scanner(connection.getInputStream());
                 scanner.useDelimiter("\\Z");
                 content = scanner.next();
-            }catch ( Exception ex ) {
+            } catch ( Exception ex ) {
                 ex.printStackTrace();
             }
-            Document document = null;
-            document = Jsoup.parse(content); // connects and parses HTML of url
+            Document document = Jsoup.parse(content); // connects and parses HTML of url
             Elements price = document.select("span[class=price-characteristic]");// grabs HTML tag
-            return Double.parseDouble(price.attr("content"));
+            product.setInitialPrice(Double.parseDouble(price.attr("content")));
+            product.setUrl(products[0].get(0).getUrl());
+            ArrayList<Product> products1 = new ArrayList<>();
+            products1.add(product);
+            products1.add(products[0].get(1));
+            return products1;
         }
 
         @Override
-        protected void onPostExecute(Double result) {
-            delegate.processFinish(result);
+        protected void onPostExecute(ArrayList<Product> products) {
+            Product product = products.get(0); // replace
+            Product p = products.get(1);
+            activity.db.open();
+            //TODO if product already exists update instead of add
+            boolean edit = false;
+            int position = 0;
+
+            for (Product element: activity.productsList) {
+                if(element.getProductName().equals(product.getProductName())){
+                    position = activity.productsList.indexOf(element);
+                    edit = true;
+                    break;
+                }
+            }
+
+            if(edit){
+                if(activity.db.updateProduct(p.getProductName(), product.getProductName(), product.getInitialPrice(),
+                        product.getCurrentPrice(), product.getUrl())) {
+                    Toast.makeText(activity, "Edit success", Toast.LENGTH_SHORT).show();
+                }
+                activity.tracker.products.set(position,product);
+                activity.adapter.notifyDataSetChanged(); //refresh ListView
+            }
+            else{
+                activity.db.insertProduct(product.getProductName(), product.getInitialPrice(),
+                        product.getCurrentPrice(), product.getUrl());
+                activity.tracker.products.add(product);
+                activity.adapter.notifyDataSetChanged(); //refresh ListView
+            }
+            activity.db.close();
+            Toast.makeText(activity, "Database updated", Toast.LENGTH_SHORT).show();
         }
     }
 }

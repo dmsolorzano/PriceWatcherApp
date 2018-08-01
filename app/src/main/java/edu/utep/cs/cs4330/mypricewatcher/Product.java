@@ -3,6 +3,7 @@ package edu.utep.cs.cs4330.mypricewatcher;
 
 /** Product class which will represent an object of a product being tracked*/
 public class Product {
+    public int id;
     private String productName;
     private double initialPrice;
     private double currentPrice;
@@ -11,9 +12,9 @@ public class Product {
     DBAdapter db;
 
     Product() {
-        productName = "Generic Football";
-        initialPrice = 20.00; // Fixed price for the time being
-        currentPrice = 20.00;
+        productName = null;
+        initialPrice = 0.00; // Fixed price for the time being
+        currentPrice = 0.00;
         url = "https://www.amazon.com/Wilson-Composite-High-School-Football/dp/B0009KF4SE/";
 
     }
