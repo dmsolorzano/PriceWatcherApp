@@ -1,18 +1,15 @@
 package edu.utep.cs.cs4330.mypricewatcher;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
-
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Scanner;
 
 public class NetworkAdapter {
 
@@ -20,5 +17,39 @@ public class NetworkAdapter {
         ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+    }
+
+    public void checkWifi(Context context) {
+        // if wifi is not enabled ask user to enable it
+        //startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS));
+        WifiManager wifi = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (wifi.isWifiEnabled()) {
+            Toast.makeText(context, "Wifi is enabled", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            Toast.makeText(context, "Wifi is disabled", Toast.LENGTH_SHORT).show();
+            // Show Dialog box asking user to enable Wifi.
+            createNetErrorDialog(context);
+        }
+    }
+
+    public boolean checkDestinationAddress(){
+        return true;
+    }
+
+    private void createNetErrorDialog(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage("This application runs better on your WiFi connection. Please turn on WiFi in Settings.");
+        builder.setTitle("Wifi is enabled");
+        builder.setPositiveButton("Settings", (dialog, id) -> {
+                    Intent i = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                    context.startActivity(i);
+                });
+        builder.setNegativeButton("Cancel",
+                (dialog, id) -> {
+                    //MainActivity.this.finish();
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 }

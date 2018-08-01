@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -39,22 +41,23 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<Product> productsList = tracker.products;
     DBAdapter db = new DBAdapter(this);
     DownloadPriceTask task;
+    NetworkAdapter networkAdapter = new NetworkAdapter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        db.open();
-
         // load data from database into ArrayList
+        networkAdapter.checkWifi(this);
+
+        db.open();
         Cursor c = db.getAllProducts();
-        if (c.moveToFirst()) {
+        if (c.moveToFirst()) { //TODO abstract into method
             do {
                 Product x = new Product(c.getString(0),
                         Double.parseDouble(c.getString(1)),
                         Double.parseDouble(c.getString(2)),
                         c.getString(3));
-
                 productsList.add(x);
             } while (c.moveToNext());
         }
@@ -70,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         // Attach the adapter to a ListView
-        listView = (ListView) findViewById(R.id.mainListView);
+        listView = findViewById(R.id.mainListView);
         listView.setAdapter(adapter);
 
         registerForContextMenu(listView);
@@ -95,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
                     element.getUrl());
         }
         db.close();
-
         adapter.notifyDataSetChanged(); //updates ListView
     }
 
@@ -164,10 +166,6 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder.setTitle("Create new product to track");
         dialogBuilder.setMessage("Enter Product and URL below");
         dialogBuilder.setPositiveButton("Done", (dialog, whichButton) -> {
-            /* TODO Create new product based on inputs from dialog
-            *        and then pass product to the asynctask to perform task
-            *        and then grab that information and pass it to the posExecute method
-            *        to update database and add product to list.*/
             String[] schemes = {"http","https"};
             UrlValidator urlValidator = new UrlValidator(schemes);
             String link = url.getText().toString();
@@ -217,8 +215,8 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder.setView(dialogView);
         Product product = productsList.get(position);
         Product trash = new Product(product.getProductName(), product.getInitialPrice(), product.getCurrentPrice(), product.getUrl());
-        EditText productName = (EditText) dialogView.findViewById(R.id.productName);
-        EditText url = (EditText) dialogView.findViewById(R.id.url);
+        EditText productName = dialogView.findViewById(R.id.productName);
+        EditText url = dialogView.findViewById(R.id.url);
 
         productName.setText(product.getProductName());
         url.setText(product.getUrl());
@@ -252,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
     /** Static nested Asynctask used to create connection to webpage
      *  and scrape webpage for price
      *
-     *  Updates database and productList in background*/
+     *  Updates database and productList in background task*/
     private static class DownloadPriceTask extends AsyncTask<Void, Void, Boolean> {
         private MainActivity activity;
         private Product product;
@@ -275,8 +273,6 @@ public class MainActivity extends AppCompatActivity {
             else
                 cancel(true);
 
-
-            //TODO check for malformed connection
             try {
                 connection =  new URL(product.getUrl()).openConnection();
                 Scanner scanner = new Scanner(connection.getInputStream());
