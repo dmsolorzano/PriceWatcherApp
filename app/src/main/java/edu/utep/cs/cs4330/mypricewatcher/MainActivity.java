@@ -1,19 +1,13 @@
 package edu.utep.cs.cs4330.mypricewatcher;
 
-
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -26,16 +20,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import org.apache.commons.validator.routines.UrlValidator;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
     PriceFinder tracker = new PriceFinder();
@@ -57,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
         displayListView();
     }
 
+    /** creates views and listeners for buttons in this activity,
+     * sets ArrayList to adapter and then adapter to ListView*/
     private void displayListView(){
         //productsList = tracker.products;
         updatePriceButton = findViewById(R.id.updatePriceButton);
@@ -78,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /** On creation of activity will load products from the database*/
     private void loadProductsFromDatabase(){
         db.open();
         Cursor c = db.getAllProducts();
@@ -94,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         db.close();
     }
 
+    /** Used to validate if a link is correctly formed*/
     private boolean validateLink(String link) {
         String[] schemes = {"http","https"};
         UrlValidator urlValidator = new UrlValidator(schemes);
@@ -105,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /** listener for updatePriceButton, updates all prices and calculates their percentages*/
     private void updatePriceButtonClicked(View view) {
         tracker.updatePrice();
         // update database
@@ -121,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged(); //updates ListView
     }
 
+    /** When a View within a list is clicked this listener will send intent to ProductDetailActivity*/
     public void onListViewClick(Product product) {
         Intent i = new Intent(this, ProductDetailActivity.class);
         Bundle extras = new Bundle();
@@ -152,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
         if(item.getTitle()=="Update") {
             Product product = productsList.get(info.position);
             DownloadCurrentPrice task = new DownloadCurrentPrice(this, product, info.position);
-            task.execute();
+            task.execute(); //execute AsyncTask
         }
         return true;
     }
@@ -169,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
         return menuChoice(item);
     }
 
+    /** Filter menu options*/
     private boolean menuChoice(MenuItem item) {
         switch (item.getItemId()) {
             case 0:
@@ -179,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    /** Shows Custom Dialog to add information for new product */
     public void showAddProductDialog() {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
@@ -208,6 +202,7 @@ public class MainActivity extends AppCompatActivity {
         b.show();
     }
 
+    /** Shows custom dialog to delete a specified product */
     public void showDeleteProductDialog(int position){
         AlertDialog.Builder dialogBuilder =  new AlertDialog.Builder(this);
         //LayoutInflater inflater = this.getLayoutInflater();
@@ -231,6 +226,7 @@ public class MainActivity extends AppCompatActivity {
         b.show();
     }
 
+    /** Show custom dialog to edit information for a product */
     public void showEditProductDialog(int position){
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
@@ -266,8 +262,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Static nested Asynctask used to create connection to webpage
-     *  and scrape webpage for price
-     *  Updates database and productList in background task*/
+     *  and scrape webpage for price */
     private static class DownloadPriceTask extends AsyncTask<Void, Void, Boolean> {
         private MainActivity activity;
         private Product product;
@@ -325,6 +320,9 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(activity, "Background task finished", Toast.LENGTH_SHORT).show();
         }
     }
+
+    /** Static nested AsyncTask used to create connection to webpage
+     * and scrape price of current price*/
     private class DownloadCurrentPrice extends AsyncTask<Void,Void,Double>{
         private MainActivity activity;
         private Product product;

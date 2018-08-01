@@ -23,12 +23,14 @@ import java.util.Scanner;
 
 public class NetworkAdapter {
 
+    /** Check to see if app is currently connected to the network*/
     public boolean checkConnection(Context context) {
         ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
+    /** Checks to see if WiFi is enabled*/
     public void checkWifi(Context context) {
         WifiManager wifi = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (wifi.isWifiEnabled()) {
@@ -61,6 +63,7 @@ public class NetworkAdapter {
         return price;
     }
 
+    /** Connection used to connect to CS 4330 and get currentPrice, Must run in AsyncTask*/
     public double createConnection2(String url){
         String content = null;
         URLConnection connection;
@@ -81,6 +84,7 @@ public class NetworkAdapter {
         return sub;
     }
 
+    /** AlertDialog displayed at run to prompt user to turn on WiFi settings*/
     private void createNetErrorDialog(Context context) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setMessage("This application runs better on your WiFi connection. " +

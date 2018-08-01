@@ -63,7 +63,7 @@ public class DBAdapter {
         DBHelper.close();
     }
 
-    //---insert a contact into the database---
+    //---insert a product into the database---
     public long insertProduct(String name, double iPrice, double cPrice, String url) {
         ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_NAME, name);
@@ -72,13 +72,13 @@ public class DBAdapter {
         initialValues.put(KEY_URL, url);
         return db.insert(DATABASE_TABLE, null, initialValues);
     }
-
+    /** Query database to remove a product*/
     public boolean removeProduct(String position) {
         //position = position+1;
         return db.delete(DATABASE_TABLE, KEY_NAME + "='" + position+ "'", null) > 0;
 
     }
-
+    /** Query database and return all products stored in database*/
     public Cursor getAllProducts() {
         return db.query(DATABASE_TABLE, new String[]{KEY_NAME,
                 KEY_INITIALPRICE,
@@ -87,12 +87,14 @@ public class DBAdapter {
         }, null, null, null, null, null);
     }
 
+    /**Query database and update currentPrice of single product stored in database*/
     public boolean updateCurrentPrice(String position, double currentPrice) {
         ContentValues args = new ContentValues();
         args.put(KEY_CURRENTPRICE, currentPrice);
         return db.update(DATABASE_TABLE, args, KEY_NAME + "='" + position+ "'", null) > 0;
     }
 
+    /** Query database and update all fields of a single product stored in database*/
     public boolean updateProduct(String position, String name, double initialPrice, double currentPrice, String url) {
         ContentValues args = new ContentValues();
         args.put(KEY_NAME, name);
