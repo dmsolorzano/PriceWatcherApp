@@ -29,7 +29,6 @@ import org.jsoup.select.Elements;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
@@ -184,12 +183,8 @@ public class MainActivity extends AppCompatActivity {
             }
             product.setUrl(link);
             product.setProductName(productName.getText().toString());
-            task = new DownloadPriceTask(this);
-
-            ArrayList<Product> products = new ArrayList<>();// fix here
-            products.add(product);
-            products.add(trash);
-            task.execute(products); // Asynctask running here
+            task = new DownloadPriceTask(this, product, trash);
+            task.execute(); // Asynctask running here
         });
         dialogBuilder.setNegativeButton("Cancel", (dialog, whichButton) -> {//do nothing
         });
@@ -246,11 +241,9 @@ public class MainActivity extends AppCompatActivity {
             }
             product.setProductName(productName.getText().toString());
             product.setUrl(product.getUrl());
-            task = new DownloadPriceTask(this);
-            ArrayList<Product> products = new ArrayList<>();
-            products.add(product);// and here
-            products.add(trash);
-            task.execute(products); // Async task
+
+            task = new DownloadPriceTask(this, product, trash);
+            task.execute(); // Async task
         });
 
         dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -265,17 +258,20 @@ public class MainActivity extends AppCompatActivity {
      *  and scrape webpage for price
      *
      *  Updates database and productList in background*/
-    private static class DownloadPriceTask extends AsyncTask<ArrayList<Product>, Void, ArrayList<Product>> {
+    private static class DownloadPriceTask extends AsyncTask<Void, Void, Void> {
         private MainActivity activity;
+        private Product product;
+        private Product trash;
 
-        DownloadPriceTask(Context context) {//TODO fix nasty code by giving Products an id
+        DownloadPriceTask(Context context, Product product, Product trash) {//TODO fix nasty code by giving Products an id
             activity = (MainActivity) context;
+            this.product = product;
+            this.trash = trash;
         }
-        protected ArrayList<Product> doInBackground(ArrayList<Product>... products) {
+        protected Void doInBackground(Void... voids) {
             String content = null;
             URLConnection connection;
-            Product product = new Product(products[0].get(0).getProductName(),products[0].get(0).getInitialPrice(),
-                    products[0].get(0).getCurrentPrice(), products[0].get(0).getUrl()); // product passed from dialog
+
             //TODO check for malformed connection
             try {
                 connection =  new URL(product.getUrl()).openConnection();
@@ -288,17 +284,12 @@ public class MainActivity extends AppCompatActivity {
             Document document = Jsoup.parse(content); // connects and parses HTML of url
             Elements price = document.select("span[class=price-characteristic]");// grabs HTML tag
             product.setInitialPrice(Double.parseDouble(price.attr("content")));
-            product.setUrl(products[0].get(0).getUrl());
-            ArrayList<Product> products1 = new ArrayList<>();
-            products1.add(product);
-            products1.add(products[0].get(1));
-            return products1;
+            return null;
         }
 
         @Override
-        protected void onPostExecute(ArrayList<Product> products) {
-            Product product = products.get(0); // replace
-            Product p = products.get(1);
+        protected void onPostExecute(Void voids) {
+
             activity.db.open();
             //TODO if product already exists update instead of add
             boolean edit = false;
@@ -313,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if(edit){
-                if(activity.db.updateProduct(p.getProductName(), product.getProductName(), product.getInitialPrice(),
+                if(activity.db.updateProduct(trash.getProductName(), product.getProductName(), product.getInitialPrice(),
                         product.getCurrentPrice(), product.getUrl())) {
                     Toast.makeText(activity, "Edit success", Toast.LENGTH_SHORT).show();
                 }
