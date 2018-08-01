@@ -60,11 +60,6 @@ public class MainActivity extends AppCompatActivity {
         }
         db.close();
 
-        //restore state
-        /*if(savedInstanceState!=null) {
-            productsList = (ArrayList<Product>) savedInstanceState.getSerializable("listViewState");
-        }*/
-
         //productsList = tracker.products;
         updatePriceButton = findViewById(R.id.updatePriceButton);
         updatePriceButton.setOnClickListener(this::updatePriceButtonClicked);
@@ -184,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
             product.setUrl(link);
             product.setProductName(productName.getText().toString());
             task = new DownloadPriceTask(this, product, trash);
-            task.execute(); // Asynctask running here
+            task.execute(); // Only execute if network is available
         });
         dialogBuilder.setNegativeButton("Cancel", (dialog, whichButton) -> {//do nothing
         });
@@ -240,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
                 link = "https://www.walmart.com/ip/Bodum-BISTRO-Coffee-Mug-Dishwasher-Safe-35-L-12-Ounce-Transparent/55047939";
             }
             product.setProductName(productName.getText().toString());
-            product.setUrl(product.getUrl());
+            product.setUrl(link);
 
             task = new DownloadPriceTask(this, product, trash);
             task.execute(); // Async task
@@ -258,19 +253,28 @@ public class MainActivity extends AppCompatActivity {
      *  and scrape webpage for price
      *
      *  Updates database and productList in background*/
-    private static class DownloadPriceTask extends AsyncTask<Void, Void, Void> {
+    private static class DownloadPriceTask extends AsyncTask<Void, Void, Boolean> {
         private MainActivity activity;
         private Product product;
         private Product trash;
 
-        DownloadPriceTask(Context context, Product product, Product trash) {//TODO fix nasty code by giving Products an id
+        DownloadPriceTask(Context context, Product product, Product trash) {
             activity = (MainActivity) context;
             this.product = product;
             this.trash = trash;
         }
-        protected Void doInBackground(Void... voids) {
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
             String content = null;
             URLConnection connection;
+            NetworkAdapter conn = new NetworkAdapter();
+            Boolean network = false;
+            if(conn.checkConnection(activity))
+                network = true;
+            else
+                cancel(true);
+
 
             //TODO check for malformed connection
             try {
@@ -281,20 +285,20 @@ public class MainActivity extends AppCompatActivity {
             } catch ( Exception ex ) {
                 ex.printStackTrace();
             }
-            Document document = Jsoup.parse(content); // connects and parses HTML of url
+            Document document = Jsoup.parse(content); // parses HTML that was retrieved
             Elements price = document.select("span[class=price-characteristic]");// grabs HTML tag
             product.setInitialPrice(Double.parseDouble(price.attr("content")));
-            return null;
+            return network;
         }
 
         @Override
-        protected void onPostExecute(Void voids) {
+        protected void onPostExecute(Boolean network) {
+            if(network)
+                Toast.makeText(activity, "Network connection stable", Toast.LENGTH_SHORT).show();
 
-            activity.db.open();
             //TODO if product already exists update instead of add
             boolean edit = false;
             int position = 0;
-
             for (Product element: activity.productsList) {
                 if(element.getProductName().equals(product.getProductName())){
                     position = activity.productsList.indexOf(element);
@@ -303,10 +307,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
+            activity.db.open();
             if(edit){
                 if(activity.db.updateProduct(trash.getProductName(), product.getProductName(), product.getInitialPrice(),
                         product.getCurrentPrice(), product.getUrl())) {
-                    Toast.makeText(activity, "Edit success", Toast.LENGTH_SHORT).show();
+                    System.out.println("Successful edit");
                 }
                 activity.tracker.products.set(position,product);
                 activity.adapter.notifyDataSetChanged(); //refresh ListView
@@ -318,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
                 activity.adapter.notifyDataSetChanged(); //refresh ListView
             }
             activity.db.close();
-            Toast.makeText(activity, "Database updated", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, "Successfully updated", Toast.LENGTH_SHORT).show();
         }
     }
 }

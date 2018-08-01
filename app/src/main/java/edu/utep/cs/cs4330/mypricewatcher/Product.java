@@ -9,7 +9,6 @@ public class Product {
     private double currentPrice;
     private String url;
     private int percentageChange;
-    DBAdapter db;
 
     Product() {
         productName = null;
