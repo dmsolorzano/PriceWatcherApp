@@ -12,6 +12,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,6 +29,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -47,30 +50,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // load data from database into ArrayList
         networkAdapter.checkWifi(this);
 
-        db.open();
-        Cursor c = db.getAllProducts();
-        if (c.moveToFirst()) { //TODO abstract into method
-            do {
-                Product x = new Product(c.getString(0),
-                        Double.parseDouble(c.getString(1)),
-                        Double.parseDouble(c.getString(2)),
-                        c.getString(3));
-                productsList.add(x);
-            } while (c.moveToNext());
-        }
-        db.close();
+        loadProductsFromDatabase();
+        displayListView();
+    }
 
+    private void displayListView(){
         //productsList = tracker.products;
         updatePriceButton = findViewById(R.id.updatePriceButton);
         updatePriceButton.setOnClickListener(this::updatePriceButtonClicked);
 
-
         // Create the adapter to convert the array to views
         adapter = new ProductsAdapter(this, productsList);
-
 
         // Attach the adapter to a ListView
         listView = findViewById(R.id.mainListView);
@@ -85,12 +77,38 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void loadProductsFromDatabase(){
+        db.open();
+        Cursor c = db.getAllProducts();
+        if (c.moveToFirst()) {
+            do {
+                Product x = new Product(c.getString(0),
+                        Double.parseDouble(c.getString(1)),
+                        Double.parseDouble(c.getString(2)),
+                        c.getString(3));
+                productsList.add(x);
+            } while (c.moveToNext());
+        }
+        tracker.calculatePercentageChange();
+        db.close();
+    }
+
+    private String validateLink(String link) {
+        String[] schemes = {"http","https"};
+        UrlValidator urlValidator = new UrlValidator(schemes);
+        if (urlValidator.isValid(link)) {
+            System.out.println("Link is valid");
+        } else {
+            link = "https://www.walmart.com/ip/Franklin-Sports-Competition-100-Size-4-Soccer-Ball-Black-White/135643452?";
+        }
+        return link;
+    }
+
     private void updatePriceButtonClicked(View view) {
         tracker.updatePrice();
-        tracker.calculatePercentageChange();
         // update database
         db.open();
-        for(Product element: productsList){
+        for(Product element: productsList) {
             db.updateProduct(element.getProductName(),
                     element.getProductName(),
                     element.getInitialPrice(),
@@ -98,10 +116,11 @@ public class MainActivity extends AppCompatActivity {
                     element.getUrl());
         }
         db.close();
+        tracker.calculatePercentageChange();
         adapter.notifyDataSetChanged(); //updates ListView
     }
 
-    public void onListViewClick(Product product){
+    public void onListViewClick(Product product) {
         Intent i = new Intent(this, ProductDetailActivity.class);
         Bundle extras = new Bundle();
         extras.putDouble("CURRENT_PRICE", product.getCurrentPrice());
@@ -130,7 +149,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
-
     // Menu methods
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -166,18 +184,11 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder.setTitle("Create new product to track");
         dialogBuilder.setMessage("Enter Product and URL below");
         dialogBuilder.setPositiveButton("Done", (dialog, whichButton) -> {
-            String[] schemes = {"http","https"};
-            UrlValidator urlValidator = new UrlValidator(schemes);
-            String link = url.getText().toString();
-            if (urlValidator.isValid(link)) { //TODO extract to method
-                System.out.println("Link is valid");
-            } else {
-                link = "https://www.walmart.com/ip/Franklin-Sports-Competition-100-Size-4-Soccer-Ball-Black-White/135643452?";
-            }
+            String link = validateLink(url.getText().toString());
             product.setUrl(link);
             product.setProductName(productName.getText().toString());
             task = new DownloadPriceTask(this, product, trash);
-            task.execute(); // Only execute if network is available
+            task.execute();
         });
         dialogBuilder.setNegativeButton("Cancel", (dialog, whichButton) -> {//do nothing
         });
@@ -217,24 +228,15 @@ public class MainActivity extends AppCompatActivity {
         Product trash = new Product(product.getProductName(), product.getInitialPrice(), product.getCurrentPrice(), product.getUrl());
         EditText productName = dialogView.findViewById(R.id.productName);
         EditText url = dialogView.findViewById(R.id.url);
-
         productName.setText(product.getProductName());
         url.setText(product.getUrl());
 
         dialogBuilder.setTitle("Edit Product");
         dialogBuilder.setMessage("Enter Product and URL below");
         dialogBuilder.setPositiveButton("Done", (dialog, whichButton) -> {
-            String[] schemes = {"http","https"};
-            UrlValidator urlValidator = new UrlValidator(schemes);
-            String link = url.getText().toString();
-            if (urlValidator.isValid(link)) { //TODO extract to method
-                System.out.println("Link is valid");
-            } else { // TODO fix this
-                link = "https://www.walmart.com/ip/Bodum-BISTRO-Coffee-Mug-Dishwasher-Safe-35-L-12-Ounce-Transparent/55047939";
-            }
+            String link = validateLink(url.getText().toString());
             product.setProductName(productName.getText().toString());
             product.setUrl(link);
-
             task = new DownloadPriceTask(this, product, trash);
             task.execute(); // Async task
         });
@@ -249,13 +251,13 @@ public class MainActivity extends AppCompatActivity {
 
     /** Static nested Asynctask used to create connection to webpage
      *  and scrape webpage for price
-     *
      *  Updates database and productList in background task*/
     private static class DownloadPriceTask extends AsyncTask<Void, Void, Boolean> {
         private MainActivity activity;
         private Product product;
         private Product trash;
 
+        // Constructor passes context and product to add
         DownloadPriceTask(Context context, Product product, Product trash) {
             activity = (MainActivity) context;
             this.product = product;
@@ -278,21 +280,21 @@ public class MainActivity extends AppCompatActivity {
                 Scanner scanner = new Scanner(connection.getInputStream());
                 scanner.useDelimiter("\\Z");
                 content = scanner.next();
-            } catch ( Exception ex ) {
-                ex.printStackTrace();
+            }  catch (final MalformedURLException e) {
+                throw new IllegalStateException("Bad URL: " + product.getUrl(), e);
+            } catch (final IOException e) {
+                Log.d("connect","Connection unavailable");
+
             }
             Document document = Jsoup.parse(content); // parses HTML that was retrieved
             Elements price = document.select("span[class=price-characteristic]");// grabs HTML tag
             product.setInitialPrice(Double.parseDouble(price.attr("content")));
+            product.setCurrentPrice(product.getInitialPrice());
             return network;
         }
 
         @Override
         protected void onPostExecute(Boolean network) {
-            if(network)
-                Toast.makeText(activity, "Network connection stable", Toast.LENGTH_SHORT).show();
-
-            //TODO if product already exists update instead of add
             boolean edit = false;
             int position = 0;
             for (Product element: activity.productsList) {

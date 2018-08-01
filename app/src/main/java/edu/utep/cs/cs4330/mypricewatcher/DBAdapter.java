@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 public class DBAdapter {
-    //private static final String KEY_ROWID = "_id";
     private static final String KEY_NAME = "name";
     private static final String KEY_INITIALPRICE = "initialprice";
     private static final String KEY_CURRENTPRICE = "currentprice";
@@ -18,7 +17,7 @@ public class DBAdapter {
     static final String TAG = "DBAdapter";
     static final String DATABASE_NAME = "MyDB";
     static final String DATABASE_TABLE = "products";
-    static final int DATABASE_VERSION = 1;
+    static final int DATABASE_VERSION = 3;
     static final String DATABASE_CREATE = "create table products (name VARCHAR, "
                     + "initialprice REAL, currentprice REAL, url VARCHAR);";
     final Context context;
@@ -65,13 +64,13 @@ public class DBAdapter {
     }
 
     //---insert a contact into the database---
-    public void insertProduct(String name, double iPrice, double cPrice, String url) {
+    public long insertProduct(String name, double iPrice, double cPrice, String url) {
         ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_NAME, name);
         initialValues.put(KEY_INITIALPRICE, iPrice);
         initialValues.put(KEY_CURRENTPRICE, cPrice);
         initialValues.put(KEY_URL, url);
-        db.insert(DATABASE_TABLE, null, initialValues);
+        return db.insert(DATABASE_TABLE, null, initialValues);
     }
 
     public boolean removeProduct(String position) {
@@ -94,7 +93,7 @@ public class DBAdapter {
         args.put(KEY_INITIALPRICE, initialPrice);
         args.put(KEY_CURRENTPRICE, currentPrice);
         args.put(KEY_URL, url);
-        return db.update(DATABASE_TABLE, args, KEY_NAME + "='" + position+ "'", null)>0;
+        return db.update(DATABASE_TABLE, args, KEY_NAME + "='" + position+ "'", null) > 0;
     }
 
 }
